@@ -1,6 +1,12 @@
 class CigalpaySDK {
 
     constructor(baseUrl, apiKey) {
+        if (typeof baseUrl !== 'string' || !baseUrl.trim()) {
+            throw new Error('Invalid baseUrl: must be a non-empty string.');
+        }
+        if (typeof apiKey !== 'string' || !apiKey.trim()) {
+            throw new Error('Invalid apiKey: must be a non-empty string.');
+        }
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
     }
@@ -22,8 +28,15 @@ class CigalpaySDK {
             options.body = JSON.stringify(data);
         }
 
-        const response = await fetch(url, options);
-        return response.json();
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        } catch (error) {
+            throw new Error(`Network error: ${error.message}`);
+        }
     }
 
     createPayment(amount, currency, extraId, ipnCallbackUrl, invoiceCallbackUrl) {
