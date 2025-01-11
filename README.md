@@ -13,11 +13,25 @@ CigalPay-JS-SDK is a lightweight JavaScript library for seamless integration wit
 
 To install the CigalPay JS SDK using npm or via cdn:
 
-### Usage via CDN
+### Install via CDN
 
 ```js
-<script src="https://cdn.jsdelivr.net/npm/cigalpay-sdk"></script>
+<script src="https://unpkg.com/cigalpay-js-sdk@1.0.0/cigalpay-sdk.js"></script>
 ```
+
+OR
+
+```js
+<script src="https://cdn.jsdelivr.net/npm/cigalpay-js-sdk@1.0.0/cigalpay-sdk.js"></script>
+```
+
+### Install via NPM
+
+```js
+npm i cigalpay-js-sdk
+```
+
+## Usage
 
 ```js
 const sdk = new CigalpaySDK('https://api.cigalpay.icu', 'your-api-key');
@@ -26,10 +40,6 @@ const sdk = new CigalpaySDK('https://api.cigalpay.icu', 'your-api-key');
 ```js
 sdk.createPayment(0.03, 'LTC', 'order123', 'https://callback.url/ipn', 'https://callback.url/invoice').then(console.log);
 ```
-
-### Usage via NPM
-
-....
 
 ## Available Methods
 
