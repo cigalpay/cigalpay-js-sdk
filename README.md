@@ -7,7 +7,7 @@ CigalPay-JS-SDK is a lightweight JavaScript library for seamless integration wit
 - Accept multiple cryptocurrencies including BTC, ETH, LTC, DOGE, DASH, SOL, MATIC and BCH.
 - Real-time payment tracking.
 - Secure API with AES-256 encryption.
-- Easy-to-use PHP SDK with Composer support.
+- Easy-to-use JS SDK with npm support.
 
 ## Installation
 
