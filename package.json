@@ -1,44 +1,48 @@
 {
   "name": "cigalpay-js-sdk",
-  "version": "1.0.2",
-  "description": "JS SDK for Cigalpay API Integration",
+  "version": "2.0.0",
+  "description": "Official CigalPay SDK: accept crypto payments in your app, SaaS or website (hosted checkout, payment API, webhook verification).",
   "main": "cigalpay-sdk.js",
   "type": "module",
   "scripts": {
-    "test": "npm run test"
+    "test": "node --test test/*.test.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cigalpay/cigalpay-js-sdk.git"
   },
   "keywords": [
-    "crypto",
-    "payment",
-    "gateway",
-    "cryptocurrency",
-    "payments",
-    "CigalPay",
-    "blockchain",
-    "payments",
-    "digital",
-    "currency",
-    "transactions",
-    "secure",
+    "cigalpay",
     "crypto",
     "payments",
-    "accept",
-    "cryptocurrency",
-    "crypto",
-    "invoicing",
-    "payment",
-    "API",
-    "crypto",
-    "SDK"
+    "payment-gateway",
+    "bitcoin",
+    "usdt",
+    "webhook",
+    "checkout",
+    "sdk"
   ],
   "author": "cigalpay",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/cigalpay/cigalpay-js-sdk/issues"
   },
-  "homepage": "https://github.com/cigalpay/cigalpay-js-sdk#readme"
+  "homepage": "https://cigalpay.com/developers",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./cigalpay-sdk.js",
+      "default": "./cigalpay-sdk.js"
+    }
+  },
+  "files": [
+    "cigalpay-sdk.js",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
 }
