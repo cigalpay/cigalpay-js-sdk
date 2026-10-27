@@ -32,7 +32,7 @@ const cigalpay = new CigalPay({
   apiKey: process.env.CIGALPAY_API_KEY,
 });
 
-const { chargeLink } = await cigalpay.createCheckout({
+const { id, chargeLink } = await cigalpay.createCheckout({
   amount: 49.9,
   currency: 'USD',            // or 'EUR'
   orderId: 'order-1042',      // your reference, sent back as extraId
@@ -42,7 +42,7 @@ const { chargeLink } = await cigalpay.createCheckout({
   lang: 'en',                 // en, fr, es, de
 });
 
-// redirect the customer to chargeLink
+// save id with the order, then redirect the customer to chargeLink
 ```
 
 ## 2. Receive the payment notification
@@ -60,8 +60,9 @@ app.post('/cigalpay/webhook', express.json(), (req, res) => {
     return res.sendStatus(401);
   }
   const payment = req.body;
-  if (isPaid(payment.status)) {
-    // CONFIRMED or FINISHED: mark payment.extraId as paid (only once)
+  const order = findOrder(payment.extraId);
+  if (isPaid(payment.status) && order && payment.checkoutId === order.cigalpayCheckoutId) {
+    // CONFIRMED or FINISHED, for the checkout you created: mark the order paid (only once)
   }
   res.sendStatus(200);
 });
@@ -72,6 +73,8 @@ app.post('/cigalpay/webhook', express.json(), (req, res) => {
 Statuses: `WAITING`, `CONFIRMING`, `CONFIRMED`, `SENDING`, `FINISHED`, `PARTIALLY_PAID`, `EXPIRED`, `FAILED` (exported as `PaymentStatus`). Ship only on `CONFIRMED` or `FINISHED`.
 
 The same payment can be notified more than once, so make your handler idempotent.
+
+Always compare `checkoutId` with the `id` that `createCheckout` returned for that order. Anyone can create a checkout with your account ID and one of your order references, so `extraId` alone doesn't prove the order was paid in full. `checkoutAmount` and `checkoutCurrency` give the checkout's price.
 
 ## Payment API
 

@@ -48,6 +48,10 @@ export interface Payment {
     swapFromCurrency?: string;
     swapFromNetwork?: string;
     swapFromAmount?: string;
+    /** Set when the payment comes from a hosted checkout: its id (as createCheckout returned it) and price. */
+    checkoutId?: string;
+    checkoutAmount?: string;
+    checkoutCurrency?: 'USD' | 'EUR';
     [key: string]: unknown;
 }
 
