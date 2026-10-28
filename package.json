@@ -1,7 +1,7 @@
 {
   "name": "cigalpay-js-sdk",
-  "version": "2.0.0",
-  "description": "Official CigalPay SDK: accept crypto payments in your app, SaaS or website (hosted checkout, payment API, webhook verification).",
+  "version": "2.1.0",
+  "description": "Official CigalPay SDK: accept crypto payments in your app, SaaS or website (hosted checkout, payment API, webhook verification, refunds).",
   "main": "cigalpay-sdk.js",
   "type": "module",
   "scripts": {
@@ -20,6 +20,7 @@
     "usdt",
     "webhook",
     "checkout",
+    "refunds",
     "sdk"
   ],
   "author": "cigalpay",

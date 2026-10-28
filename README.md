@@ -95,6 +95,26 @@ await cigalpay.getActivePayments();
 await cigalpay.getSupportedCoins();
 ```
 
+## Refunds
+
+Refund a paid payment from your server. It needs `apiKey`.
+
+```js
+const { refund, link } = await cigalpay.createRefund({
+  paymentId: payment.id,              // the `id` in the payment notification
+  checkoutAmount: 20,                 // in the checkout's USD / EUR, or `amount` in the coin paid
+  customerEmail: 'customer@example.com',
+  reason: 'Returned item',
+});
+link;                                 // the customer enters their address here
+
+await cigalpay.getRefunds(payment.id); // status: awaiting_address, pending_review, sent...
+```
+
+- The refund and its network fee come out of your CigalPay balance in the payment's coin. A payment forwarded to your own wallet can't be refunded this way: refund it from that wallet.
+- `checkoutAmount` is converted at the payment's rate, so the customer gets back the same share of the coin they sent.
+- CigalPay's fee on the payment is not refunded.
+
 ## Errors
 
 API failures throw `CigalPayError`:

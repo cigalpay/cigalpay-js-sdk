@@ -9,6 +9,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 const DEFAULTS = {
     checkoutUrl: 'https://coins-api.cigalpay.com',
     apiUrl: 'https://core-api.cigalpay.com',
+    merchantApiUrl: 'https://merchant-api.cigalpay.com',
     timeoutMs: 15000,
 };
 
@@ -29,6 +30,7 @@ export class CigalPay {
      * @param {string} [options.apiKey]      Your API key (dashboard > Settings) - for the payment API.
      * @param {string} [options.checkoutUrl] Override the checkout API base URL.
      * @param {string} [options.apiUrl]      Override the payment API base URL.
+     * @param {string} [options.merchantApiUrl] Override the refunds API base URL.
      * @param {number} [options.timeoutMs]   Request timeout (default 15 s).
      */
     constructor(options = {}) {
@@ -37,6 +39,7 @@ export class CigalPay {
         this.apiKey = options.apiKey;
         this.checkoutUrl = (options.checkoutUrl || DEFAULTS.checkoutUrl).replace(/\/+$/, '');
         this.apiUrl = (options.apiUrl || DEFAULTS.apiUrl).replace(/\/+$/, '');
+        this.merchantApiUrl = (options.merchantApiUrl || DEFAULTS.merchantApiUrl).replace(/\/+$/, '');
         this.timeoutMs = options.timeoutMs || DEFAULTS.timeoutMs;
     }
 
@@ -147,6 +150,44 @@ export class CigalPay {
     /** Coins accepted directly. */
     getSupportedCoins() {
         return this.#request('GET', `${this.apiUrl}/supportedCoins`);
+    }
+
+    // ── Refunds ───────────────────────────────────────────────────────────
+
+    /**
+     * Refund a paid payment. The amount and its network fee come out of your
+     * CigalPay balance in the payment's coin; the customer gets a link to enter
+     * the address to refund (by email when you pass customerEmail), then
+     * CigalPay sends it. Needs `apiKey`.
+     *
+     * @param {object} p
+     * @param {string} p.paymentId          The payment id (the `id` in its notifications)
+     * @param {number} [p.amount]           In the coin paid...
+     * @param {number} [p.checkoutAmount]   ...or in the checkout's USD / EUR, converted at the payment's rate
+     * @param {string} [p.customerEmail]    Gets the link to enter their address
+     * @param {string} [p.reason]
+     * @returns {Promise<{ refund: object, link: string }>}
+     */
+    createRefund(p) {
+        if (!p?.paymentId) throw new CigalPayError('CigalPay: createRefund needs `paymentId`');
+        if ((p.amount === undefined) === (p.checkoutAmount === undefined)) {
+            throw new CigalPayError('CigalPay: createRefund needs either `amount` or `checkoutAmount`');
+        }
+        return this.#request('POST', `${this.merchantApiUrl}/api/refunds`, {
+            headers: this.#apiHeaders(),
+            body: {
+                paymentId: String(p.paymentId),
+                amount: p.amount,
+                checkoutAmount: p.checkoutAmount,
+                customerEmail: p.customerEmail || undefined,
+                reason: p.reason || undefined,
+            },
+        });
+    }
+
+    /** The refunds of a payment, newest first, with their status. */
+    getRefunds(paymentId) {
+        return this.#request('GET', `${this.merchantApiUrl}/api/refunds?paymentId=${encodeURIComponent(paymentId)}`, { headers: this.#apiHeaders() });
     }
 
     // ── Webhooks ──────────────────────────────────────────────────────────

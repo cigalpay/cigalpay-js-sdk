@@ -5,6 +5,7 @@ export interface CigalPayOptions {
     apiKey?: string;
     checkoutUrl?: string;
     apiUrl?: string;
+    merchantApiUrl?: string;
     /** Request timeout in ms (default 15000). */
     timeoutMs?: number;
 }
@@ -55,6 +56,36 @@ export interface Payment {
     [key: string]: unknown;
 }
 
+export interface RefundParams {
+    /** The payment id (the `id` in its notifications). */
+    paymentId: string;
+    /** In the coin paid. Pass this or `checkoutAmount`. */
+    amount?: number;
+    /** In the checkout's USD / EUR, converted at the payment's rate. */
+    checkoutAmount?: number;
+    /** Gets the link to enter their refund address. */
+    customerEmail?: string;
+    reason?: string;
+}
+
+export type RefundStatus = 'awaiting_address' | 'pending_review' | 'sent' | 'rejected' | 'cancelled' | 'expired';
+
+export interface Refund {
+    id: string;
+    paymentId: string;
+    currency: string;
+    amount: number;
+    networkFee: number;
+    reason: string | null;
+    customerEmail: string | null;
+    address: string | null;
+    status: RefundStatus;
+    txHash: string | null;
+    expiresAt: string;
+    createdAt: string;
+    [key: string]: unknown;
+}
+
 export declare class CigalPayError extends Error {
     /** HTTP status, 0 for a network error. */
     status: number;
@@ -69,6 +100,9 @@ export declare class CigalPay {
     getPaymentsByOrder(orderId: string | number): Promise<Payment[]>;
     getActivePayments(): Promise<Payment[]>;
     getSupportedCoins(): Promise<unknown>;
+    /** Refund a paid payment from your CigalPay balance. Needs `apiKey`. */
+    createRefund(params: RefundParams): Promise<{ refund: Refund; link: string }>;
+    getRefunds(paymentId: string): Promise<{ data: Refund[] }>;
     /** Check the `x-cigalpay-sig` header of a notification. */
     static verifyWebhook(body: string | Uint8Array | object, signature: string | undefined | null, secret: string): boolean;
 }
