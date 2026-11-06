@@ -202,7 +202,7 @@ export class CigalPay {
      * @param {string} p.paymentId          The payment id (the `id` in its notifications)
      * @param {number} [p.amount]           In the coin paid...
      * @param {number} [p.checkoutAmount]   ...or in the checkout's USD / EUR, converted at the payment's rate
-     * @param {string} [p.customerEmail]    Gets the link to enter their address
+     * @param {string} [p.customerEmail]    Gets the link to enter their address (with white label on, you send `link` yourself)
      * @param {string} [p.reason]
      * @returns {Promise<{ refund: object, link: string }>}
      */
