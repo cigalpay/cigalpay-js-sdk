@@ -113,3 +113,26 @@ test('payCheckout refuses incomplete requests before any call', () => {
     assert.throws(() => c.payCheckout({ checkoutId: 'c', coin: 'BTC', swapCoin: 'XRP' }), /`coin` or `swapCoin`/);
     assert.throws(() => c.payCheckout({ checkoutId: 'c', swapCoin: 'XRP' }), /customer\.ip/);
 });
+
+test('addForwardingAddress sends the forwarding key, never the API key', async () => {
+    const { createServer } = await import('node:http');
+    const seen = [];
+    const server = createServer((req, res) => {
+        let raw = '';
+        req.on('data', (d) => (raw += d));
+        req.on('end', () => {
+            seen.push({ url: req.url, headers: req.headers, body: JSON.parse(raw) });
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ requestId: 'r1', verificationLink: 'https://x/wallet/t' }));
+        });
+    });
+    await new Promise((r) => server.listen(0, r));
+    const c = new CigalPay({ apiKey: 'k', forwardingKey: 'f', merchantApiUrl: `http://127.0.0.1:${server.address().port}` });
+    const r = await c.addForwardingAddress({ currency: 'BTC', label: 'shop-1', address: 'addr' });
+    server.close();
+    assert.equal(r.verificationLink, 'https://x/wallet/t');
+    assert.equal(seen[0].url, '/api/forwarding/addresses');
+    assert.equal(seen[0].headers['cigalpay-forwarding-key'], 'f');
+    assert.equal(seen[0].headers['cigalpay-api-key'], undefined);
+    assert.throws(() => new CigalPay({ apiKey: 'k' }).addForwardingAddress({ currency: 'BTC', label: 'x', address: 'a' }), /forwardingKey/);
+});

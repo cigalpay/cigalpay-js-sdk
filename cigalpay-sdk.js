@@ -28,6 +28,7 @@ export class CigalPay {
      * @param {object} options
      * @param {string} [options.accountId]   Your account ID (dashboard > Settings) - for hosted checkouts.
      * @param {string} [options.apiKey]      Your API key (dashboard > Settings) - for the payment API.
+     * @param {string} [options.forwardingKey] Your forwarding key (dashboard > White label) - to add customers' wallets.
      * @param {string} [options.checkoutUrl] Override the checkout API base URL.
      * @param {string} [options.apiUrl]      Override the payment API base URL.
      * @param {string} [options.merchantApiUrl] Override the refunds API base URL.
@@ -37,6 +38,7 @@ export class CigalPay {
         if (typeof options !== 'object' || options === null) throw new TypeError('CigalPay: options must be an object');
         this.accountId = options.accountId;
         this.apiKey = options.apiKey;
+        this.forwardingKey = options.forwardingKey;
         this.checkoutUrl = (options.checkoutUrl || DEFAULTS.checkoutUrl).replace(/\/+$/, '');
         this.apiUrl = (options.apiUrl || DEFAULTS.apiUrl).replace(/\/+$/, '');
         this.merchantApiUrl = (options.merchantApiUrl || DEFAULTS.merchantApiUrl).replace(/\/+$/, '');
@@ -144,6 +146,33 @@ export class CigalPay {
         return this.#request('POST', `${this.checkoutUrl}/api/swap-quote`, {
             headers: this.#apiHeaders(),
             body: { chargeId: checkoutId, swapCurrency: swapCoin },
+        });
+    }
+
+    /**
+     * Ask to add a customer's wallet. Returns `verificationLink`: send it to
+     * your customer. Once they confirm, it's used after 24 hours, under `label`.
+     * Works only from the IPs of your forwarding key.
+     */
+    addForwardingAddress({ currency, label, address } = {}) {
+        if (!currency || !label || !address) throw new CigalPayError('CigalPay: addForwardingAddress needs `currency`, `label` and `address`');
+        return this.#request('POST', `${this.merchantApiUrl}/api/forwarding/addresses`, {
+            headers: { 'cigalpay-forwarding-key': this.#needs('forwardingKey') },
+            body: { currency, label, address },
+        });
+    }
+
+    /** The wallets you asked for, and whether each customer confirmed. */
+    getForwardingAddresses() {
+        return this.#request('GET', `${this.merchantApiUrl}/api/forwarding/addresses`, {
+            headers: { 'cigalpay-forwarding-key': this.#needs('forwardingKey') },
+        });
+    }
+
+    /** Remove a labelled address. Its payments go back to your default address or balance. */
+    removeForwardingLabel(id) {
+        return this.#request('DELETE', `${this.merchantApiUrl}/api/forwarding/labels/${encodeURIComponent(id)}`, {
+            headers: { 'cigalpay-forwarding-key': this.#needs('forwardingKey') },
         });
     }
 

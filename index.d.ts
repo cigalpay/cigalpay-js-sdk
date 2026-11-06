@@ -3,6 +3,8 @@ export interface CigalPayOptions {
     accountId?: string;
     /** Your API key (dashboard > Settings) - for the payment API. */
     apiKey?: string;
+    /** Your forwarding key, to add customers' wallets. */
+    forwardingKey?: string;
     checkoutUrl?: string;
     apiUrl?: string;
     merchantApiUrl?: string;
@@ -104,6 +106,10 @@ export declare class CigalPay {
         /** Which confirmed forwarding address gets this payment. */
         forwardLabel?: string;
     }): Promise<Record<string, unknown>>;
+    /** Returns `verificationLink`: send it to your customer. Needs the forwarding key. */
+    addForwardingAddress(params: { currency: string; label: string; address: string }): Promise<{ requestId: string; verificationLink: string; expiresAt: string }>;
+    getForwardingAddresses(): Promise<{ requests: { id: string; currency: string; label: string; address: string; status: string; confirmedAt: string | null; createdAt: string }[] }>;
+    removeForwardingLabel(id: string): Promise<{ removed: boolean }>;
     getForwardingLabels(): Promise<{ labels: { id: string; currency: string; label: string; address: string; activatesAt: string; active: boolean }[] }>;
     quoteCheckout(params: { checkoutId: string; swapCoin: string }): Promise<Record<string, unknown>>;
     getSwapCoins(): Promise<Record<string, unknown>>;
