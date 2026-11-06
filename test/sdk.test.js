@@ -123,14 +123,14 @@ test('addForwardingAddress sends the forwarding key, never the API key', async (
         req.on('end', () => {
             seen.push({ url: req.url, headers: req.headers, body: JSON.parse(raw) });
             res.setHeader('content-type', 'application/json');
-            res.end(JSON.stringify({ requestId: 'r1', verificationLink: 'https://x/wallet/t' }));
+            res.end(JSON.stringify({ id: 'w1', activatesAt: '2026-11-07T00:00:00Z' }));
         });
     });
     await new Promise((r) => server.listen(0, r));
     const c = new CigalPay({ apiKey: 'k', forwardingKey: 'f', merchantApiUrl: `http://127.0.0.1:${server.address().port}` });
     const r = await c.addForwardingAddress({ currency: 'BTC', label: 'shop-1', address: 'addr' });
     server.close();
-    assert.equal(r.verificationLink, 'https://x/wallet/t');
+    assert.equal(r.id, 'w1');
     assert.equal(seen[0].url, '/api/forwarding/addresses');
     assert.equal(seen[0].headers['cigalpay-forwarding-key'], 'f');
     assert.equal(seen[0].headers['cigalpay-api-key'], undefined);

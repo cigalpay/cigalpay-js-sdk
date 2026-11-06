@@ -106,9 +106,11 @@ export declare class CigalPay {
         /** Which confirmed forwarding address gets this payment. */
         forwardLabel?: string;
     }): Promise<Record<string, unknown>>;
-    /** Returns `verificationLink`: send it to your customer. Needs the forwarding key. */
-    addForwardingAddress(params: { currency: string; label: string; address: string }): Promise<{ requestId: string; verificationLink: string; expiresAt: string }>;
-    getForwardingAddresses(): Promise<{ requests: { id: string; currency: string; label: string; address: string; status: string; confirmedAt: string | null; createdAt: string }[] }>;
+    /** Add a customer's wallet you have verified. Used after 24 hours. Needs the forwarding key. */
+    addForwardingAddress(params: { currency: string; label: string; address: string }): Promise<{ id: string; currency: string; label: string; address: string; activatesAt: string }>;
+    getForwardingAddresses(): Promise<{ wallets: { id: string; currency: string; label: string; address: string; status: string; createdAt: string }[] }>;
+    /** Refund to your customer's address. Send `amount` or `checkoutAmount`. Needs the forwarding key. */
+    refundToAddress(params: { paymentId: string; address: string; amount?: number; checkoutAmount?: number; reason?: string }): Promise<{ refund: Refund }>;
     removeForwardingLabel(id: string): Promise<{ removed: boolean }>;
     getForwardingLabels(): Promise<{ labels: { id: string; currency: string; label: string; address: string; activatesAt: string; active: boolean }[] }>;
     quoteCheckout(params: { checkoutId: string; swapCoin: string }): Promise<Record<string, unknown>>;

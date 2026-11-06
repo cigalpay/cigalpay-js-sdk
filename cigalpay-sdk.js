@@ -150,9 +150,8 @@ export class CigalPay {
     }
 
     /**
-     * Ask to add a customer's wallet. Returns `verificationLink`: send it to
-     * your customer. Once they confirm, it's used after 24 hours, under `label`.
-     * Works only from the IPs of your forwarding key.
+     * Add a customer's wallet you have verified. It's used after 24 hours,
+     * under `label`. Works only from the IPs of your forwarding key.
      */
     addForwardingAddress({ currency, label, address } = {}) {
         if (!currency || !label || !address) throw new CigalPayError('CigalPay: addForwardingAddress needs `currency`, `label` and `address`');
@@ -162,10 +161,23 @@ export class CigalPay {
         });
     }
 
-    /** The wallets you asked for, and whether each customer confirmed. */
+    /** The wallets added through the API. */
     getForwardingAddresses() {
         return this.#request('GET', `${this.merchantApiUrl}/api/forwarding/addresses`, {
             headers: { 'cigalpay-forwarding-key': this.#needs('forwardingKey') },
+        });
+    }
+
+    /**
+     * Refund a paid payment to your customer's address: no refund page, and it
+     * goes to review like every refund. Send `amount` or `checkoutAmount`.
+     */
+    refundToAddress(p = {}) {
+        if (!p.paymentId || !p.address) throw new CigalPayError('CigalPay: refundToAddress needs `paymentId` and `address`');
+        if ((p.amount === undefined) === (p.checkoutAmount === undefined)) throw new CigalPayError('CigalPay: refundToAddress needs `amount` or `checkoutAmount`');
+        return this.#request('POST', `${this.merchantApiUrl}/api/forwarding/refunds`, {
+            headers: { 'cigalpay-forwarding-key': this.#needs('forwardingKey') },
+            body: { paymentId: p.paymentId, address: p.address, amount: p.amount, checkoutAmount: p.checkoutAmount, reason: p.reason },
         });
     }
 
