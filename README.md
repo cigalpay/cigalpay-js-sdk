@@ -95,6 +95,24 @@ await cigalpay.getActivePayments();
 await cigalpay.getSupportedCoins();
 ```
 
+## Your own payment page (white label)
+
+Turn on **White label** in your dashboard (Settings → White label). Your server creates the checkout, then asks for the address to show on your page. The customer never sees a CigalPay payment page.
+
+```js
+const cigalpay = new CigalPay({ accountId: '...', apiKey: '...' });
+
+const { id } = await cigalpay.createCheckout({ amount: 49.9, currency: 'USD', orderId: '1042', description: 'Order #1042', returnUrl, notifyUrl });
+
+// A coin accepted directly:
+const payment = await cigalpay.payCheckout({ checkoutId: id, coin: 'BTC' });
+
+// A coin converted at payment: pass the paying customer as your server sees them.
+const swap = await cigalpay.payCheckout({ checkoutId: id, swapCoin: 'XRP', customer: { ip: req.ip, userAgent: req.get('user-agent') } });
+```
+
+Show the returned address and exact amount, and confirm the order from the signed notification, as with a hosted checkout. Use `getSwapCoins()` and `quoteCheckout()` to list converted coins and show what the customer would send. Keep your API key on your server.
+
 ## Refunds
 
 Refund a paid payment from your server. It needs `apiKey`.

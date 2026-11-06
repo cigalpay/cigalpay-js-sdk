@@ -95,6 +95,15 @@ export declare class CigalPayError extends Error {
 export declare class CigalPay {
     constructor(options?: CigalPayOptions);
     createCheckout(params: CheckoutParams): Promise<Checkout>;
+    /** Needs white label turned on in your dashboard settings. Send `coin`, or `swapCoin` with `customer.ip`. */
+    payCheckout(params: {
+        checkoutId: string;
+        coin?: string;
+        swapCoin?: string;
+        customer?: { ip: string; userAgent?: string; languages?: string };
+    }): Promise<Record<string, unknown>>;
+    quoteCheckout(params: { checkoutId: string; swapCoin: string }): Promise<Record<string, unknown>>;
+    getSwapCoins(): Promise<Record<string, unknown>>;
     createPayment(params: { amount: number; currency: string; orderId?: string | number; notifyUrl?: string; returnUrl: string }): Promise<Payment>;
     getPayment(id: string): Promise<Payment>;
     getPaymentsByOrder(orderId: string | number): Promise<Payment[]>;

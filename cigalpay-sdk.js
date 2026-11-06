@@ -113,6 +113,44 @@ export class CigalPay {
         });
     }
 
+    // ── Your own payment page (white label) ────────────────────
+
+    /**
+     * Turn a checkout into a payment and get the address to show on your own
+     * page. Needs white label turned on in your dashboard settings. Send `coin`
+     * for a coin accepted directly, or `swapCoin` for one converted at payment,
+     * which also needs the paying customer's `customer.ip`.
+     *
+     * @param {object} p
+     * @param {string} p.checkoutId     The `id` createCheckout() returned
+     * @param {string} [p.coin]         e.g. 'BTC', 'USDT_TRX'
+     * @param {string} [p.swapCoin]     A code from getSwapCoins()
+     * @param {{ip: string, userAgent?: string, languages?: string}} [p.customer] The paying customer, as your server sees them
+     */
+    payCheckout({ checkoutId, coin, swapCoin, customer } = {}) {
+        if (!checkoutId) throw new CigalPayError('CigalPay: payCheckout needs `checkoutId`');
+        if (!coin === !swapCoin) throw new CigalPayError('CigalPay: payCheckout needs `coin` or `swapCoin`');
+        if (swapCoin && !customer?.ip) throw new CigalPayError('CigalPay: payCheckout needs `customer.ip` with `swapCoin`');
+        return this.#request('POST', `${this.checkoutUrl}/api/charge-invoice`, {
+            headers: this.#apiHeaders(),
+            body: { chargeId: checkoutId, coins: coin, swapCurrency: swapCoin, customer },
+        });
+    }
+
+    /** What the customer would send to pay a checkout in a converted coin. */
+    quoteCheckout({ checkoutId, swapCoin } = {}) {
+        if (!checkoutId || !swapCoin) throw new CigalPayError('CigalPay: quoteCheckout needs `checkoutId` and `swapCoin`');
+        return this.#request('POST', `${this.checkoutUrl}/api/swap-quote`, {
+            headers: this.#apiHeaders(),
+            body: { chargeId: checkoutId, swapCurrency: swapCoin },
+        });
+    }
+
+    /** The coins a customer can pay with through automatic conversion. */
+    getSwapCoins() {
+        return this.#request('GET', `${this.apiUrl}/swapCurrencies`);
+    }
+
     // ── Payment API (you show the address yourself) ───────────────────────
 
     /**

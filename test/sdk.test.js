@@ -81,3 +81,35 @@ test('createRefund checks its input before any request', () => {
     assert.throws(() => c.createRefund({ paymentId: 'p' }), /either `amount` or `checkoutAmount`/);
     assert.throws(() => c.createRefund({ paymentId: 'p', amount: 1, checkoutAmount: 1 }), /either `amount` or `checkoutAmount`/);
 });
+
+test('payCheckout and quoteCheckout call the checkout API with the API key', async () => {
+    const { createServer } = await import('node:http');
+    const seen = [];
+    const server = createServer((req, res) => {
+        let raw = '';
+        req.on('data', (d) => (raw += d));
+        req.on('end', () => {
+            seen.push({ url: req.url, key: req.headers['cigalpay-api-key'], body: JSON.parse(raw) });
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ id: 'p1', publicKey: 'addr' }));
+        });
+    });
+    await new Promise((r) => server.listen(0, r));
+    const c = new CigalPay({ apiKey: 'k', checkoutUrl: `http://127.0.0.1:${server.address().port}` });
+    await c.payCheckout({ checkoutId: 'c1', coin: 'BTC' });
+    await c.payCheckout({ checkoutId: 'c1', swapCoin: 'XRP', customer: { ip: '203.0.113.7' } });
+    await c.quoteCheckout({ checkoutId: 'c1', swapCoin: 'XRP' });
+    server.close();
+    assert.deepEqual(seen.map((s) => s.url), ['/api/charge-invoice', '/api/charge-invoice', '/api/swap-quote']);
+    assert.equal(seen[0].key, 'k');
+    assert.deepEqual(seen[0].body, { chargeId: 'c1', coins: 'BTC' });
+    assert.equal(seen[1].body.customer.ip, '203.0.113.7');
+});
+
+test('payCheckout refuses incomplete requests before any call', () => {
+    const c = new CigalPay({ apiKey: 'k' });
+    assert.throws(() => c.payCheckout({ coin: 'BTC' }), /needs `checkoutId`/);
+    assert.throws(() => c.payCheckout({ checkoutId: 'c' }), /`coin` or `swapCoin`/);
+    assert.throws(() => c.payCheckout({ checkoutId: 'c', coin: 'BTC', swapCoin: 'XRP' }), /`coin` or `swapCoin`/);
+    assert.throws(() => c.payCheckout({ checkoutId: 'c', swapCoin: 'XRP' }), /customer\.ip/);
+});
