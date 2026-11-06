@@ -101,7 +101,10 @@ export declare class CigalPay {
         coin?: string;
         swapCoin?: string;
         customer?: { ip: string; userAgent?: string; languages?: string };
+        /** Which confirmed forwarding address gets this payment. */
+        forwardLabel?: string;
     }): Promise<Record<string, unknown>>;
+    getForwardingLabels(): Promise<{ labels: { id: string; currency: string; label: string; address: string; activatesAt: string; active: boolean }[] }>;
     quoteCheckout(params: { checkoutId: string; swapCoin: string }): Promise<Record<string, unknown>>;
     getSwapCoins(): Promise<Record<string, unknown>>;
     createPayment(params: { amount: number; currency: string; orderId?: string | number; notifyUrl?: string; returnUrl: string }): Promise<Payment>;

@@ -126,14 +126,15 @@ export class CigalPay {
      * @param {string} [p.coin]         e.g. 'BTC', 'USDT_TRX'
      * @param {string} [p.swapCoin]     A code from getSwapCoins()
      * @param {{ip: string, userAgent?: string, languages?: string}} [p.customer] The paying customer, as your server sees them
+     * @param {string} [p.forwardLabel] Which confirmed forwarding address gets this payment (see getForwardingLabels())
      */
-    payCheckout({ checkoutId, coin, swapCoin, customer } = {}) {
+    payCheckout({ checkoutId, coin, swapCoin, customer, forwardLabel } = {}) {
         if (!checkoutId) throw new CigalPayError('CigalPay: payCheckout needs `checkoutId`');
         if (!coin === !swapCoin) throw new CigalPayError('CigalPay: payCheckout needs `coin` or `swapCoin`');
         if (swapCoin && !customer?.ip) throw new CigalPayError('CigalPay: payCheckout needs `customer.ip` with `swapCoin`');
         return this.#request('POST', `${this.checkoutUrl}/api/charge-invoice`, {
             headers: this.#apiHeaders(),
-            body: { chargeId: checkoutId, coins: coin, swapCurrency: swapCoin, customer },
+            body: { chargeId: checkoutId, coins: coin, swapCurrency: swapCoin, customer, forwardLabel },
         });
     }
 
@@ -144,6 +145,11 @@ export class CigalPay {
             headers: this.#apiHeaders(),
             body: { chargeId: checkoutId, swapCurrency: swapCoin },
         });
+    }
+
+    /** The labelled forwarding addresses confirmed in your dashboard. */
+    getForwardingLabels() {
+        return this.#request('GET', `${this.merchantApiUrl}/api/forwarding/labels`, { headers: this.#apiHeaders() });
     }
 
     /** The coins a customer can pay with through automatic conversion. */
