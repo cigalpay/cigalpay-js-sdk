@@ -1,0 +1,44 @@
+# Pushing a tag vX.Y.Z tests the SDK, stages it on npm through Trusted
+# Publishing (no token; provenance added by npm) and creates the GitHub release.
+# The version goes live only once a maintainer approves it with 2FA on
+# npmjs.com -> Staged Packages (or `npm stage approve <stage-id>`).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Staged publishing needs npm 11.15+; Node 22 ships npm 10.
+      - run: npm install -g npm@11
+
+      - name: Check the tag matches the package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(node -p "require('./package.json').version")
+          echo "tag=$tag version=$version"
+          [ "$tag" = "$version" ] || { echo "::error::Tag v$tag doesn't match version $version in package.json"; exit 1; }
+
+      - run: npm test
+
+      - name: Stage on npm (approve on npmjs.com to publish)
+        run: npm stage publish --provenance --access public
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "${GITHUB_REF_NAME#v}" --generate-notes
