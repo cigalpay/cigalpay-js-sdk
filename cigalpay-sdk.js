@@ -95,11 +95,16 @@ export class CigalPay {
      * @param {string} p.returnUrl      Where the customer goes after paying
      * @param {string} p.notifyUrl      Your webhook URL (signed notifications)
      * @param {'en'|'fr'|'es'|'de'} [p.lang='en'] Checkout language
+     * @param {'customer'|'merchant'} [p.feePaidBy] Who pays the processing fee on this checkout.
+     *        'customer' adds it to the price the customer pays. Leave it out to use your dashboard setting.
      * @returns {Promise<{ id: string, chargeLink: string, amount?: number, currency?: string }>}
      */
     createCheckout(p) {
         for (const k of ['amount', 'currency', 'orderId', 'description', 'returnUrl', 'notifyUrl']) {
             if (p?.[k] === undefined || p[k] === '') throw new CigalPayError(`CigalPay: createCheckout needs \`${k}\``);
+        }
+        if (p.feePaidBy !== undefined && p.feePaidBy !== 'customer' && p.feePaidBy !== 'merchant') {
+            throw new CigalPayError("CigalPay: feePaidBy must be 'customer' or 'merchant'");
         }
         return this.#request('POST', `${this.checkoutUrl}/api/pre-invoice`, {
             body: {
@@ -111,6 +116,7 @@ export class CigalPay {
                 lang: p.lang || 'en',
                 callback: p.returnUrl,
                 ipn: p.notifyUrl,
+                feePaidBy: p.feePaidBy,
             },
         });
     }

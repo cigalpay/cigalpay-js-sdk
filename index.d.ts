@@ -24,6 +24,8 @@ export interface CheckoutParams {
     /** Your webhook URL for signed notifications. */
     notifyUrl: string;
     lang?: 'en' | 'fr' | 'es' | 'de';
+    /** Who pays the processing fee on this checkout. `'customer'` adds it to the price the customer pays. Leave it out to use your dashboard setting. */
+    feePaidBy?: 'customer' | 'merchant';
 }
 
 export interface Checkout {
@@ -55,6 +57,9 @@ export interface Payment {
     checkoutId?: string;
     checkoutAmount?: string;
     checkoutCurrency?: 'USD' | 'EUR';
+    /** Set when the customer paid the processing fee: the fee and what the customer paid (price + fee). */
+    checkoutFee?: string;
+    checkoutTotal?: string;
     [key: string]: unknown;
 }
 

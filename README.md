@@ -40,6 +40,7 @@ const { id, chargeLink } = await cigalpay.createCheckout({
   returnUrl: 'https://example.com/thanks',
   notifyUrl: 'https://example.com/cigalpay/webhook',
   lang: 'en',                 // en, fr, es, de
+  feePaidBy: 'customer',      // optional: 'customer' adds the processing fee to the price; omit to use your dashboard setting
 });
 
 // save id with the order, then redirect the customer to chargeLink
@@ -74,7 +75,7 @@ Statuses: `WAITING`, `CONFIRMING`, `CONFIRMED`, `SENDING`, `FINISHED`, `PARTIALL
 
 The same payment can be notified more than once, so make your handler idempotent.
 
-Always compare `checkoutId` with the `id` that `createCheckout` returned for that order. Anyone can create a checkout with your account ID and one of your order references, so `extraId` alone doesn't prove the order was paid in full. `checkoutAmount` and `checkoutCurrency` give the checkout's price.
+Always compare `checkoutId` with the `id` that `createCheckout` returned for that order. Anyone can create a checkout with your account ID and one of your order references, so `extraId` alone doesn't prove the order was paid in full. `checkoutAmount` and `checkoutCurrency` give the checkout's price. When the customer paid the processing fee, `checkoutFee` and `checkoutTotal` (price + fee) are added; `checkoutAmount` stays your price.
 
 **Test without paying:** in the dashboard, Settings → API → Test notification sends a signed sample to your URL. It carries `test: true` and the order reference `cigalpay-test`, so your server can ignore it.
 

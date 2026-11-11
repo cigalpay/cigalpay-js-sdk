@@ -136,3 +136,29 @@ test('addForwardingAddress sends the forwarding key, never the API key', async (
     assert.equal(seen[0].headers['cigalpay-api-key'], undefined);
     assert.throws(() => new CigalPay({ apiKey: 'k' }).addForwardingAddress({ currency: 'BTC', label: 'x', address: 'a' }), /forwardingKey/);
 });
+
+test('createCheckout sends feePaidBy only when given, and rejects other values', async () => {
+    const { createServer } = await import('node:http');
+    const bodies = [];
+    const server = createServer((req, res) => {
+        let body = '';
+        req.on('data', (c) => (body += c));
+        req.on('end', () => {
+            bodies.push(JSON.parse(body));
+            res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ id: 'c1', chargeLink: 'https://pay/c1' }));
+        });
+    });
+    await new Promise((r) => server.listen(0, '127.0.0.1', r));
+    const c = new CigalPay({ accountId: 'acc', checkoutUrl: `http://127.0.0.1:${server.address().port}` });
+    const base = { amount: 100, currency: 'EUR', orderId: 7, description: 'x', returnUrl: 'https://a.b', notifyUrl: 'https://a.b' };
+    try {
+        await c.createCheckout({ ...base, feePaidBy: 'customer' });
+        await c.createCheckout(base);
+        assert.equal(bodies[0].feePaidBy, 'customer');
+        assert.equal('feePaidBy' in bodies[1], false);
+        assert.throws(() => c.createCheckout({ ...base, feePaidBy: 'buyer' }), /feePaidBy must be/);
+        assert.equal(bodies.length, 2);
+    } finally {
+        server.close();
+    }
+});
