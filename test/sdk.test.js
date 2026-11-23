@@ -162,3 +162,11 @@ test('createCheckout sends feePaidBy only when given, and rejects other values',
         server.close();
     }
 });
+
+test('old cigalpay.icu base URLs fall back to the current hosts', () => {
+    const c = new CigalPay({ apiUrl: 'https://api.cigalpay.icu/', checkoutUrl: 'https://coins.cigalpay.icu', merchantApiUrl: 'http://cigalpay.icu' });
+    assert.equal(c.apiUrl, 'https://core-api.cigalpay.com');
+    assert.equal(c.checkoutUrl, 'https://coins-api.cigalpay.com');
+    assert.equal(c.merchantApiUrl, 'https://merchant-api.cigalpay.com');
+    assert.equal(new CigalPay({ apiUrl: 'https://my-proxy.test//' }).apiUrl, 'https://my-proxy.test');
+});

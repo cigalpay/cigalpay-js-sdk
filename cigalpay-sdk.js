@@ -14,6 +14,13 @@ const DEFAULTS = {
 };
 
 /** Error from the CigalPay API: `status` is the HTTP status (0 = network), `body` the parsed reply. */
+/** Base URL without trailing slashes; the v1 hosts (cigalpay.icu) no longer belong to CigalPay, so they fall back to the default. */
+function baseUrl(given, fallback) {
+    const url = String(given || '').replace(/\/+$/, '');
+    if (!url || /cigalpay\.icu/i.test(url)) return fallback;
+    return url;
+}
+
 export class CigalPayError extends Error {
     constructor(message, status = 0, body = undefined) {
         super(message);
@@ -39,9 +46,9 @@ export class CigalPay {
         this.accountId = options.accountId;
         this.apiKey = options.apiKey;
         this.forwardingKey = options.forwardingKey;
-        this.checkoutUrl = (options.checkoutUrl || DEFAULTS.checkoutUrl).replace(/\/+$/, '');
-        this.apiUrl = (options.apiUrl || DEFAULTS.apiUrl).replace(/\/+$/, '');
-        this.merchantApiUrl = (options.merchantApiUrl || DEFAULTS.merchantApiUrl).replace(/\/+$/, '');
+        this.checkoutUrl = baseUrl(options.checkoutUrl, DEFAULTS.checkoutUrl);
+        this.apiUrl = baseUrl(options.apiUrl, DEFAULTS.apiUrl);
+        this.merchantApiUrl = baseUrl(options.merchantApiUrl, DEFAULTS.merchantApiUrl);
         this.timeoutMs = options.timeoutMs || DEFAULTS.timeoutMs;
     }
 
